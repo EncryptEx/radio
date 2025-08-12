@@ -1,0 +1,17 @@
+services:
+  icecast:
+    image: ghcr.io/jee-r/icecast:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: icecast
+    restart: unless-stopped
+    user: "1000:1000"
+    volumes:
+    #  - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+        - HOME=/config
+        - TZ=Europe/Paris
+    ports:
+      - 8000:8000
