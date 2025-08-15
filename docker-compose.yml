@@ -1,0 +1,37 @@
+services:
+  icecast:
+    image: ghcr.io/jee-r/icecast:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: icecast
+    restart: unless-stopped
+    user: "1000:1000"
+    volumes:
+      - ./icecastconfig:/config
+      - /etc/localtime:/etc/localtime
+    environment:
+        - HOME=/config
+        - TZ=Europe/Paris
+    ports:
+      - 8000:8000
+    networks:
+      - internal
+
+  liquidsoap:
+    image: savonet/liquidsoap:v2.3.3
+    volumes:
+      - ./main.liq:/main.liq
+      - ./music:/music
+      - ./jingles:/jingles
+    command: liquidsoap /main.liq
+    ports: 
+      - 1234:1234
+    depends_on:
+      - icecast
+    networks:
+      - internal
+
+
+networks:
+  internal:
