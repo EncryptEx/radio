@@ -25,13 +25,22 @@ services:
       - ./music:/music
       - ./jingles:/jingles
     command: liquidsoap /main.liq
-    ports: 
+    ports:
       - 1234:1234
     depends_on:
       - icecast
     networks:
       - internal
 
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - 5000:5000
+    networks:
+      - internal
 
 networks:
   internal:

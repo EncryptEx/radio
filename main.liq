@@ -3,6 +3,7 @@ settings.server.telnet.bind_addr := "0.0.0.0"
 
 music = playlist("/music")
 jingles = playlist("/jingles")
+q = request.queue()
 
 # A function to add a source_tag metadata to a source:
 def source_tag(s, tag) =
@@ -22,7 +23,13 @@ music =
 jingles = source_tag(jingles, "jingles")
 
 # Combine them with one jingle every 3 music tracks
-radio = rotate(weights=[1, 3], [jingles, music])
+radio =
+  fallback(
+    [
+      request.queue(id="request"),
+      rotate(weights=[1, 3], [jingles, music])
+    ]
+  )
 
 # Now a custom crossfade transition:
 def transition(a, b) =
