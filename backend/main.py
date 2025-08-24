@@ -112,7 +112,7 @@ def skip():
     return jsonify({'msg': 'song skipped'}), 200
 
 @main_bp.route('/request', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def request_song():
     uri = request.args.get('uri')
     if not uri:
@@ -138,3 +138,12 @@ def checkIfUriIsValid(file):
     # check if file is part of music folder. 
     # prevent folder traversal
     return file in listdir(music_path)
+
+
+# for future use.
+def timeRemaining():
+    # Get the remaining time of the currently playing song
+    with telnetlib.Telnet(host, port, timeout) as session:
+        session.write(b"output.icecast.remaining\n")
+        remaining_time = session.read_until(b"END", timeout).decode().strip()
+    return remaining_time
