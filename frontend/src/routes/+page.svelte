@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import "animate.css";
 
   let songTitle: string = "Loading...";
   let songArtist: string = "Loading...";
@@ -69,12 +70,27 @@
       volume = lastVolume;
     }
   }
+
+
+  function skipSong() {
+    fetch("http://127.0.0.1:5000/skip", { method: "GET" })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Song skipped");
+        } else {
+          console.error("Failed to skip song");
+        }
+      })
+      .catch((error) => {
+        console.error("Error skipping song:", error);
+      });
+  }
 </script>
 
 <audio
   bind:this={audioPlayer}
   src="http://127.0.0.1:8000/radio.ogg"
-  preload="none"
+  preload="auto"
 ></audio>
 
 <div class="bg-gray-900 py-16 sm:py-24">
@@ -82,20 +98,21 @@
     <div class="flex">
       <div class="flex-1 w-48 mx-12 p-4 bg-gray-800 rounded-lg h-140">
         <img src="/img/synthwave.png" alt="Synthwave" class="rounded-lg" />
-        <div class="rounded-full">
-          <div class="justify-center">
-            <p
-              class="text-white dark:text-[#FAF9EF] text-lg mt-2"
-              id="songname"
-            >
-              {songTitle}
-            </p>
-            <p
-              class="text-white dark:text-[#FAF9EF] text-md"
-              id="artistname"
-            >
-              {songArtist}
-            </p>
+        <p
+            class="text-white dark:text-[#FAF9EF] text-lg mt-2"
+            id="songname"
+          >
+            {songTitle}
+          </p>
+          <p
+            class="text-white dark:text-[#FAF9EF] text-md"
+            id="artistname"
+          >
+            {songArtist}
+          </p>
+        <div class="grid grid-cols-3">
+          <div></div>
+          <div class="rounded-full">
             <button
               onclick={togglePlay}
               class="cursor-pointer mx-auto mt-2 w-24 h-24 rounded-full bg-white border shadow-xl flex items-center justify-center dark:bg-[#3E6990]"
@@ -134,9 +151,30 @@
               {/if}
             </button>
           </div>
+          <div class="relative">
+            <!-- button to skip -->
+            <button
+              onclick={(event) => {
+              skipSong();
+              const btn = event.currentTarget as HTMLButtonElement;
+              btn.classList.add('animate__tada');
+              setTimeout(() => btn.classList.remove('animate__tada'), 1000);
+              }}
+              class="w-12 fill-[#3E6990] dark:fill-white flex-1 absolute inset-y-0 right-4 cursor-pointer animate__animated"
+              aria-label="Skip song"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="w-[32px]">
+              <path d="M371.7 43.1C360.1 32 343 28.9 328.3 35.2S304 56 304 72l0 136.3-172.3-165.1C120.1 32 103 28.9 88.3 35.2S64 56 64 72l0 368c0 16 9.6 30.5 24.3 36.8s31.8 3.2 43.4-7.9L304 303.7 304 440c0 16 9.6 30.5 24.3 36.8s31.8 3.2 43.4-7.9l192-184c7.9-7.5 12.3-18 12.3-28.9s-4.5-21.3-12.3-28.9l-192-184z"/>
+              </svg>
+            </button>
+          </div>
         </div>
+
+
+          
+        
         <div class="flex mt-5">
-          <button onclick={toggleMute} class="w-full fill-[#3E6990] dark:fill-white flex-1">
+          <button onclick={toggleMute} class="w-full fill-[#3E6990] dark:fill-white flex-1 cursor-pointer">
             {#if volume > 75}
               <!-- High Volume Icon -->
               <div class="w-10">
