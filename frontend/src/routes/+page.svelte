@@ -4,6 +4,8 @@
   let songTitle: string = "Loading...";
   let songArtist: string = "Loading...";
   let songsAvailable: string[] = [];
+  let audioPlayer: HTMLAudioElement;
+  let isPlaying = false;
 
   onMount(async () => {
     try {
@@ -36,7 +38,22 @@
       songsAvailable = [];
     }
   });
+
+  function togglePlay() {
+    if (isPlaying) {
+      audioPlayer.pause();
+    } else {
+      audioPlayer.play();
+    }
+    isPlaying = !isPlaying;
+  }
 </script>
+
+<audio
+  bind:this={audioPlayer}
+  src="http://127.0.0.1:8000/radio.ogg"
+  preload="none"
+></audio>
 
 <div class="bg-gray-900 py-16 sm:py-24">
   <div class="mx-auto max-w-2xl px-6 lg:max-w-7xl lg:px-8">
@@ -58,25 +75,41 @@
               {songArtist}
             </p>
             <button
-              class="cursor-pointer mx-auto mt-2 w-24 h-24 rounded-full bg-white border shadow-xl flex items-center justify-center dark:bg-[#3E6990] bg-[#E9E3B4]"
-              aria-label="Play"
+              onclick={togglePlay}
+              class="cursor-pointer mx-auto mt-2 w-24 h-24 rounded-full bg-white border shadow-xl flex items-center justify-center dark:bg-[#3E6990]"
             >
-              <svg
-                id="play-icon"
-                class="ml-[10px]"
-                width="31"
-                height="37"
-                viewBox="0 0 31 37"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M29.6901 16.6608L4.00209 0.747111C2.12875 -0.476923 0.599998 0.421814 0.599998 2.75545V33.643C0.599998 35.9728 2.12747 36.8805 4.00209 35.6514L29.6901 19.7402C29.6901 19.7402 30.6043 19.0973 30.6043 18.2012C30.6043 17.3024 29.6901 16.6608 29.6901 16.6608Z"
-                  class="fill-[#3E6990] dark:fill-[#FAF9EF]"
-                ></path>
-              </svg>
+              {#if isPlaying}
+                <!-- Pause Icon -->
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="fill-[#3E6990] dark:fill-white"
+                >
+                  <path d="M10 4H6V20H10V4Z" />
+                  <path d="M18 4H14V20H18V4Z" />
+                </svg>
+              {:else}
+                <!-- Play Icon -->
+                <svg
+                  id="play-icon"
+                  class="ml-[10px]"
+                  width="31"
+                  height="37"
+                  viewBox="0 0 31 37"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M29.6901 16.6608L4.00209 0.747111C2.12875 -0.476923 0.599998 0.421814 0.599998 2.75545V33.643C0.599998 35.9728 2.12747 36.8805 4.00209 35.6514L29.6901 19.7402C29.6901 19.7402 30.6043 19.0973 30.6043 18.2012C30.6043 17.3024 29.6901 16.6608 29.6901 16.6608Z"
+                    class="fill-[#3E6990] dark:fill-white"
+                  ></path>
+                </svg>
+              {/if}
             </button>
           </div>
         </div>
@@ -90,25 +123,41 @@
         </h2>
         <table class="mt-4 w-full text-left border-collapse">
           <thead>
-        <tr>
-          <th class="text-white dark:text-[#FAF9EF] text-lg border-b pb-2"> </th>
-        </tr>
+            <tr>
+              <th class="text-white dark:text-[#FAF9EF] text-lg border-b pb-2">
+                {" "}
+              </th>
+            </tr>
           </thead>
           <tbody>
-        {#each songsAvailable as song}
-            {#if song.match(/^[^"'＂]+["'＂](.*?)["'＂]\s+by\s+([^[]+)/i)}
-            {@const match = song.match(/^[^"＂']+["＂'](.*?)["＂']\s+by\s+([^[]+)/i)}
-            <tr>
-              <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
-                <span class="font-bold">{match[1]}</span> <span class="italic">by {match[2]}</span>
-              </td>
-            </tr>
-          {:else}
-            <tr>
-              <td class="text-white dark:text-[#FAF9EF] py-2 border-b">{song}</td>
-            </tr>
-          {/if}
-        {/each}
+            {#each songsAvailable as song}
+              {#if song.match(/^[^"'＂]+["'＂](.*?)["'＂]\s+by\s+([^[]+)/i)}
+              {@const match = song.match(/^[^"＂']+["＂'](.*?)["＂']\s+by\s+([^[]+)/i)}
+              <tr>
+                <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
+                  <a
+                    href="#"
+                    onclick={async () => {
+                      await fetch(
+                        `http://127.0.0.1:5000/request?uri=${encodeURIComponent(
+                          song
+                        )}`
+                      );
+                    }}
+                  >
+                    <span class="font-bold">{match[1]}</span>{" "}
+                    <span class="italic">by {match[2]}</span>
+                  </a>
+                </td>
+              </tr>
+              {:else}
+              <tr>
+                <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
+                  {song}
+                </td>
+              </tr>
+              {/if}
+            {/each}
           </tbody>
         </table>
       </div>
