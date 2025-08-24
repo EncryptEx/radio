@@ -10,6 +10,7 @@
   let volume = 100;
   let lastVolume = 100;
   let interval: NodeJS.Timeout;
+  let loading = true;
 
   $: if (audioPlayer) audioPlayer.volume = volume / 100;
 
@@ -31,10 +32,7 @@
     }
   }
 
-  onMount(async () => {
-    await fetchNowPlaying();
-    interval = setInterval(fetchNowPlaying, 10000);
-
+  async function fetchSongsAvailable() {
     try {
       const response = await fetch("http://127.0.0.1:5000/songsAvailable");
       if (response.ok) {
@@ -47,6 +45,13 @@
       console.error("Failed to fetch songs data:", error);
       songsAvailable = [];
     }
+  }
+
+  onMount(async () => {
+    await Promise.all([fetchNowPlaying(), fetchSongsAvailable()]);
+    loading = false;
+    
+    interval = setInterval(fetchNowPlaying, 10000);
   });
 
   onDestroy(() => {
@@ -85,6 +90,11 @@
         console.error("Error skipping song:", error);
       });
   }
+
+
+  function reloadWebsite() {
+    location.reload();
+  }
 </script>
 
 <audio
@@ -98,7 +108,13 @@
     <div class="flex">
       <div class="flex-1 w-48 mx-12 p-4 bg-gray-800 rounded-lg h-140">
         <img src="/img/synthwave.png" alt="Synthwave" class="rounded-lg" />
-        <p
+        {#if loading}
+          <div class="animate-pulse mt-2">
+            <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+            <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+          </div>
+        {:else}
+          <p
             class="text-white dark:text-[#FAF9EF] text-lg mt-2"
             id="songname"
           >
@@ -110,8 +126,18 @@
           >
             {songArtist}
           </p>
+        {/if}
         <div class="grid grid-cols-3">
-          <div></div>
+          <div class="relative">
+            <button
+            onclick={reloadWebsite}
+            class="absolute inset-y-0 right-9 w-[32px] fill-current text-[#3E6990] dark:text-white bg-transparent cursor-pointer"
+            aria-label="Reload"
+            >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M488 192l-144 0c-9.7 0-18.5-5.8-22.2-14.8s-1.7-19.3 5.2-26.2l46.7-46.7c-75.3-58.6-184.3-53.3-253.5 15.9-75 75-75 196.5 0 271.5s196.5 75 271.5 0c8.2-8.2 15.5-16.9 21.9-26.1 10.1-14.5 30.1-18 44.6-7.9s18 30.1 7.9 44.6c-8.5 12.2-18.2 23.8-29.1 34.7-100 100-262.1 100-362 0S-25 175 75 75c94.3-94.3 243.7-99.6 344.3-16.2L471 7c6.9-6.9 17.2-8.9 26.2-5.2S512 14.3 512 24l0 144c0 13.3-10.7 24-24 24z"/></svg>
+        </button>
+          
+          </div>
           <div class="rounded-full">
             <button
               onclick={togglePlay}
@@ -224,34 +250,46 @@
             </tr>
           </thead>
           <tbody>
-            {#each songsAvailable as song}
-              {#if song.match(/^[^"'＂]+["'＂](.*?)["'＂]\s+by\s+([^[]+)/i)}
-              {@const match = song.match(/^[^"＂']+["＂'](.*?)["＂']\s+by\s+([^[]+)/i)}
-              <tr>
-                <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
-                  <a
-                    href="#"
-                    onclick={async () => {
-                      await fetch(
-                        `http://127.0.0.1:5000/request?uri=${encodeURIComponent(
-                          song
-                        )}`
-                      );
-                    }}
-                  >
-                    <span class="font-bold">{match[1]}</span>{" "}
-                    <span class="italic">by {match[2]}</span>
-                  </a>
-                </td>
-              </tr>
-              {:else}
-              <tr>
-                <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
-                  {song}
-                </td>
-              </tr>
-              {/if}
-            {/each}
+            {#if loading}
+              {#each Array(30) as _}
+                <tr>
+                  <td class="py-2 border-b border-gray-700">
+                    <div class="animate-pulse">
+                      <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            {:else}
+              {#each songsAvailable as song}
+                {#if song.match(/^[^"'＂]+["'＂](.*?)["'＂]\s+by\s+([^[]+)/i)}
+                {@const match = song.match(/^[^"＂']+["＂'](.*?)["＂']\s+by\s+([^[]+)/i)}
+                <tr>
+                  <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
+                    <a
+                      href="#"
+                      onclick={async () => {
+                        await fetch(
+                          `http://127.0.0.1:5000/request?uri=${encodeURIComponent(
+                            song
+                          )}`
+                        );
+                      }}
+                    >
+                      <span class="font-bold">{match[1]}</span>{" "}
+                      <span class="italic">by {match[2]}</span>
+                    </a>
+                  </td>
+                </tr>
+                {:else}
+                <tr>
+                  <td class="text-white dark:text-[#FAF9EF] py-2 border-b">
+                    {song}
+                  </td>
+                </tr>
+                {/if}
+              {/each}
+            {/if}
           </tbody>
         </table>
       </div>
