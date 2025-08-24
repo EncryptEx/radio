@@ -1,9 +1,6 @@
 services:
   icecast:
     image: ghcr.io/jee-r/icecast:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     container_name: icecast
     restart: unless-stopped
     user: "1000:1000"
@@ -26,7 +23,7 @@ services:
       - ./jingles:/jingles
     command: liquidsoap /main.liq
     ports:
-      - 1234:1234
+      - 1234:1234 # in prod: remove this line
     depends_on:
       - icecast
     networks:
@@ -37,6 +34,7 @@ services:
       context: ./backend
     volumes:
       - ./backend:/app
+      - ./music:/music
     ports:
       - 5000:5000
     networks:

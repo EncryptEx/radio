@@ -13,6 +13,13 @@ def source_tag(s, tag) =
   metadata.map(id=tag, insert_missing=true, f, s)
 end
 
+def jingle_tag(s, title, artist) =
+  def f(_) =
+    [("title", (title : string)), ("artist", (artist : string))]
+  end
+  metadata.map(id=title, insert_missing=true, f, s)
+end
+
 # Tag our sources
 music = 
   fallback(
@@ -20,7 +27,7 @@ music =
       source_tag(music, "music")
     ]
   )
-jingles = source_tag(jingles, "jingles")
+jingles = jingle_tag(source_tag(jingles, "jingles"), "The station with the best music", "EncryptEx")
 
 # Combine them with one jingle every 3 music tracks
 radio =
