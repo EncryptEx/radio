@@ -11,14 +11,15 @@
   let lastVolume = 100;
   let interval: NodeJS.Timeout;
   let loading = true;
-  let host = "127.0.0.1"
+  let host = "127.0.0.1";
+  let port = 5000;
 
   $: if (audioPlayer) audioPlayer.volume = volume / 100;
 
 
   async function fetchNowPlaying() {
     try {
-    const response = await fetch(`http://${host}:5000/now-playing`);
+    const response = await fetch(`http://${host}:${port}/now-playing`);
     if (response.ok) {
       const data = await response.json();
       songTitle = data.title || "Title not available";
@@ -36,7 +37,7 @@
 
   async function fetchSongsAvailable() {
     try {
-      const response = await fetch(`http://${host}:5000/songsAvailable`);
+      const response = await fetch(`http://${host}:${port}/songsAvailable`);
       if (response.ok) {
         const data = await response.json();
         songsAvailable = data.musicfiles || [];
@@ -80,7 +81,7 @@
 
 
   function skipSong() {
-    fetch(`http://${host}:5000/skip`, { method: "GET" })
+    fetch(`http://${host}:${port}/skip`, { method: "GET" })
       .then((response) => {
         if (response.ok) {
           console.log("Song skipped");
@@ -274,7 +275,7 @@
                       href="#"
                       onclick={async () => {
                         await fetch(
-                          `http://${host}:5000/request?uri=${encodeURIComponent(
+                          `http://${host}:${port}/request?uri=${encodeURIComponent(
                             song
                           )}`
                         );
