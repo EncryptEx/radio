@@ -40,5 +40,15 @@ services:
     networks:
       - internal
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+    networks:
+      - internal
+
 networks:
   internal:

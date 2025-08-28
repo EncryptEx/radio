@@ -11,13 +11,14 @@
   let lastVolume = 100;
   let interval: NodeJS.Timeout;
   let loading = true;
+  let host = "127.0.0.1"
 
   $: if (audioPlayer) audioPlayer.volume = volume / 100;
 
 
   async function fetchNowPlaying() {
     try {
-    const response = await fetch("http://127.0.0.1:5000/now-playing");
+    const response = await fetch(`http://${host}:5000/now-playing`);
     if (response.ok) {
       const data = await response.json();
       songTitle = data.title || "Title not available";
@@ -29,12 +30,13 @@
     } catch (error) {
     console.error("Failed to fetch now playing data:", error);
     songTitle = "Could not connect to the server.";
+    songArtist = "Could not connect to the server.";
     }
   }
 
   async function fetchSongsAvailable() {
     try {
-      const response = await fetch("http://127.0.0.1:5000/songsAvailable");
+      const response = await fetch(`http://${host}:5000/songsAvailable`);
       if (response.ok) {
         const data = await response.json();
         songsAvailable = data.musicfiles || [];
@@ -78,7 +80,7 @@
 
 
   function skipSong() {
-    fetch("http://127.0.0.1:5000/skip", { method: "GET" })
+    fetch(`http://${host}:5000/skip`, { method: "GET" })
       .then((response) => {
         if (response.ok) {
           console.log("Song skipped");
@@ -89,6 +91,8 @@
       .catch((error) => {
         console.error("Error skipping song:", error);
       });
+
+      fetchNowPlaying();
   }
 
 
@@ -99,14 +103,14 @@
 
 <audio
   bind:this={audioPlayer}
-  src="http://127.0.0.1:8000/radio.ogg"
+  src={`http://${host}:8000/radio.ogg`}
   preload="auto"
 ></audio>
 
 <div class="bg-gray-900 py-16 sm:py-24">
-  <div class="mx-auto max-w-2xl px-6 lg:max-w-7xl lg:px-8">
-    <div class="flex">
-      <div class="flex-1 w-48 mx-12 p-4 bg-gray-800 rounded-lg h-140">
+  <div class="mx-auto max-w-2xl px-6 md:max-w-7xl lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-start">
+      <div class="flex-1 sm:w-[80%] sm:mx-12 md:w-64 lg:w-48 md:mx-2 lg:mx-12 p-4 bg-gray-800 rounded-lg h-auto">
         <img src="/img/synthwave.png" alt="Synthwave" class="rounded-lg" />
         {#if loading}
           <div class="animate-pulse mt-2">
@@ -128,10 +132,10 @@
           </p>
         {/if}
         <div class="grid grid-cols-3">
-          <div class="relative">
+          <div class="flex items-center justify-center">
             <button
             onclick={reloadWebsite}
-            class="absolute inset-y-0 right-9 w-[32px] fill-current text-[#3E6990] dark:text-white bg-transparent cursor-pointer"
+            class="w-[32px] fill-current text-[#3E6990] dark:text-white bg-transparent cursor-pointer"
             aria-label="Reload"
             >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M488 192l-144 0c-9.7 0-18.5-5.8-22.2-14.8s-1.7-19.3 5.2-26.2l46.7-46.7c-75.3-58.6-184.3-53.3-253.5 15.9-75 75-75 196.5 0 271.5s196.5 75 271.5 0c8.2-8.2 15.5-16.9 21.9-26.1 10.1-14.5 30.1-18 44.6-7.9s18 30.1 7.9 44.6c-8.5 12.2-18.2 23.8-29.1 34.7-100 100-262.1 100-362 0S-25 175 75 75c94.3-94.3 243.7-99.6 344.3-16.2L471 7c6.9-6.9 17.2-8.9 26.2-5.2S512 14.3 512 24l0 144c0 13.3-10.7 24-24 24z"/></svg>
@@ -141,7 +145,7 @@
           <div class="rounded-full">
             <button
               onclick={togglePlay}
-              class="cursor-pointer mx-auto mt-2 w-24 h-24 rounded-full bg-white border shadow-xl flex items-center justify-center dark:bg-[#3E6990]"
+              class="cursor-pointer mx-auto mt-2 w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-white border shadow-xl flex items-center justify-center dark:bg-[#3E6990]"
             >
               {#if isPlaying}
                 <!-- Pause Icon -->
@@ -177,7 +181,7 @@
               {/if}
             </button>
           </div>
-          <div class="relative">
+          <div class="flex items-center justify-center">
             <!-- button to skip -->
             <button
               onclick={(event) => {
@@ -186,7 +190,7 @@
               btn.classList.add('animate__tada');
               setTimeout(() => btn.classList.remove('animate__tada'), 1000);
               }}
-              class="w-12 fill-[#3E6990] dark:fill-white flex-1 absolute inset-y-0 right-4 cursor-pointer animate__animated"
+              class="w-12 fill-[#3E6990] dark:fill-white cursor-pointer animate__animated"
               aria-label="Skip song"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="w-[32px]">
@@ -235,7 +239,7 @@
         </div>
       </div>
 
-      <div class="flex-2 w-96 px-12">
+      <div class="flex-1 lg:flex-2 sm:w-full md:w-96 sm:px-12 md:px-4 lg:px-12 mt-12 md:mt-0">
         <h2
           class="text-white dark:text-[#FAF9EF] text-3xl font-extrabold tracking-tight sm:text-4xl"
         >
@@ -270,7 +274,7 @@
                       href="#"
                       onclick={async () => {
                         await fetch(
-                          `http://127.0.0.1:5000/request?uri=${encodeURIComponent(
+                          `http://${host}:5000/request?uri=${encodeURIComponent(
                             song
                           )}`
                         );
