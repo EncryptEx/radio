@@ -30,9 +30,13 @@ To start the radio station, run:
 docker-compose up -d
 ```
 
-This will start the Icecast and Liquidsoap services.
+This will start the Frontend, Backend, Icecast, and Liquidsoap services.
 
-## Accessing the Stream
+## Accessing the frontend UI
+
+You can access the frontend UI at `http://localhost:3000`.
+
+## Accessing the Icecast Stream
 
 You can access the stream at `http://localhost:8000/radio.ogg`.
 
